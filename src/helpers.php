@@ -3,7 +3,7 @@
 if (!function_exists('validateBase64ImageString')) {
 
     /**
-     * Check if Image string is valid
+     * Check if Image string is valid or not
      *
      * @param       $string
      * @param int   $maxSizeInMB
