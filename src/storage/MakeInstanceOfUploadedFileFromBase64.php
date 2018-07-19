@@ -123,7 +123,7 @@ class MakeInstanceOfUploadedFileFromBase64
     /**
      * @return mixed
      */
-    public function getUploadedFileInstance()
+    public function getInstance()
     {
         return $this->uploadedFileInstance;
     }

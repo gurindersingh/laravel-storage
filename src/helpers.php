@@ -70,3 +70,25 @@ if (!function_exists('getUploadedFileInstance')) {
         return new \Illuminate\Http\UploadedFile($path, $originalName, $mimeType, $size, $error, $public);
     }
 }
+
+if (!function_exists('storageUrl')) {
+
+    /**
+     * @param      $path
+     * @param null $prefix
+     * @return string
+     */
+    function storageUrl($path, $prefix = null)
+    {
+        $pathPrefix = '/';
+
+        if ($cloudUrlPrefix = config('media.cloud_url_prefix')) {
+            $pathPrefix = $prefix ?: trim($cloudUrlPrefix, '/');
+        }
+
+        $path = trim($path, '/');
+
+        return "{$pathPrefix}/{$path}";
+    }
+
+}

@@ -17,7 +17,7 @@ class ImageUploader
 
     protected $image;
 
-    protected $name;
+    protected $name = null;
 
     protected $extension;
 
@@ -33,17 +33,23 @@ class ImageUploader
 
     protected $interventionImage;
 
-    public function __construct($disk, UploadedFile $uploadedImage = null, $name = null)
+    protected $isLocal = false;
+
+    public function __construct(UploadedFile $uploadedImage = null)
     {
+        $disk = config('filesystems.default');
+
         $this->disk = Storage::disk($disk);
+
+        $this->isLocal = $disk == 'local';
 
         $this->image = $uploadedImage;
 
-        $this->name = $name = $name ?: $this->getName();
+        $this->name = $this->getName();
 
         $this->extension = $extension = $uploadedImage->getClientOriginalExtension();
 
-        $this->setMedia($disk, $name);
+        $this->setMedia($disk);
 
     }
 
@@ -64,7 +70,11 @@ class ImageUploader
     {
         $this->interventionImage->backup();
 
-        $path = ltrim($this->path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . "{$this->name}-original.{$this->extension}";
+        $this->media['name'] = $this->name;
+
+        $storagePath = ltrim($this->path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . "{$this->name}-original.{$this->extension}";
+
+        $path = $this->isLocal && $this->public ? "public" . DIRECTORY_SEPARATOR . $storagePath : $storagePath;
 
         $this->disk->put(
             $path,
@@ -73,7 +83,7 @@ class ImageUploader
         );
 
         $this->media['variations']['original'] = [
-            'path'      => $path,
+            'path'      => $storagePath,
             'mime_type' => $this->image->getClientMimeType(),
             'width'     => $this->interventionImage->width(),
             'height'    => $this->interventionImage->height()
@@ -94,7 +104,11 @@ class ImageUploader
 
             $image = $this->interventionImage->fit($variation['width'], $variation['height']);
 
-            $path = ltrim($this->path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $this->name . '-' . $variationType . '.' . $this->extension;
+            $this->media['name'] = $this->name;
+
+            $storagePath = ltrim($this->path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $this->name . '-' . $variationType . '.' . $this->extension;
+
+            $path = $this->isLocal && $this->public ? "public" . DIRECTORY_SEPARATOR . $storagePath : $storagePath;
 
             $this->disk->put(
                 $path,
@@ -103,7 +117,7 @@ class ImageUploader
             );
 
             $this->media['variations'][$variationType] = [
-                'path'      => $path,
+                'path'      => $storagePath,
                 'mime_type' => $this->image->getClientMimeType(),
                 'width'     => $variation['width'],
                 'height'    => $variation['height']
@@ -165,20 +179,21 @@ class ImageUploader
      * @param bool $public
      * @return ImageUploader
      */
-    public function setPublic(bool $public): ImageUploader
+    public function setPublic(bool $public)
     {
-        $this->public = $public;
+        $this->public = $public ?: $this->public;
+        $this->media['public'] = $this->public;
         return $this;
     }
 
-    public function setMedia($disk, $name)
+    public function setMedia($disk)
     {
         $this->media = [
-            'name'         => $name,
+            'name'         => $this->name,
             'extension'    => $this->extension,
             'mime_type'    => $this->image->getClientMimeType(),
             'file_type'    => 'image',
-            'public'       => !!$this->public,
+            'public'       => $this->public ? true : false,
             'variations'   => [],
             'storage_disk' => $disk
         ];
@@ -191,6 +206,26 @@ class ImageUploader
     public function setPath($path)
     {
         $this->path = $this->sanitizePath($path);
+        return $this;
+    }
+
+    /**
+     * @param mixed $disk
+     * @return ImageUploader
+     */
+    public function setDisk($disk)
+    {
+        $this->disk = $disk;
+        return $this;
+    }
+
+    /**
+     * @param mixed $disk
+     * @return ImageUploader
+     */
+    public function setName($name)
+    {
+        $this->name = $name ?: $this->name;
         return $this;
     }
 

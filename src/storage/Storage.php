@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Storage as LaravelStorage;
 class Storage implements StorageContract
 {
 
+    protected $variations = null;
+
+    protected $public = false;
+
+    protected $name = null;
+
     /**
      * @param        $disk
      * @param        $image
@@ -21,17 +27,17 @@ class Storage implements StorageContract
      * @return array
      * @throws \Exception
      */
-    public function uploadImage($disk, $image, $variations = [], $public = false, $pathPrefix = 'images')
+    public function uploadImage($image)
     {
         if (is_string($image)) {
 
             $uploadedFileInstaceGenerator = (new MakeInstanceOfUploadedFileFromBase64($image));
 
-            $imageUploaded = (new ImageUploader($disk, $uploadedFileInstaceGenerator->getUploadedFileInstance()));
+            $imageUploader = (new ImageUploader($uploadedFileInstaceGenerator->getInstance()));
 
         } else if ($image instanceof UploadedFile) {
 
-            $imageUploaded = (new ImageUploader($disk, $image));
+            $imageUploader = (new ImageUploader($image));
 
         } else {
 
@@ -39,7 +45,11 @@ class Storage implements StorageContract
 
         }
 
-        $imageData = $imageUploaded->setPath($pathPrefix)->setVariations($variations)->setPublic($public)->upload();
+        $imageData = $imageUploader
+            ->setVariations(is_null($this->variations) ? config('media.image_variations') : $this->variations)
+            ->setName($this->name)
+            ->setPublic($this->public)
+            ->upload();
 
         isset($uploadedFileInstaceGenerator) ? $uploadedFileInstaceGenerator->deleteDir() : null;
 
@@ -53,9 +63,9 @@ class Storage implements StorageContract
      * @param array $paths
      * @return mixed|void
      */
-    public function removeImages($disk, $paths = [])
+    public function removeImages($disk, $paths = [], $removeFromLocalPublic = false)
     {
-        (new RemoveImage($disk, $paths))->remove();
+        (new RemoveImage($disk, $paths, $removeFromLocalPublic))->remove();
     }
 
     /**
@@ -67,7 +77,7 @@ class Storage implements StorageContract
      */
     public function uploadDocument(UploadedFile $document, $public = false, $disk = null, $pathPrefix = 'documents')
     {
-        $disk = $disk ?: config('media.disk');
+        $disk = $disk ?: config('filesystems.default');
 
         return LaravelStorage::disk($disk)->putFile('documents', $document);
     }
@@ -92,6 +102,27 @@ class Storage implements StorageContract
     public function uploadVideo(UploadedFile $video, $variations = [], $public = false, $pathPrefix = 'videos')
     {
 
+    }
+
+    public function setVariations($variations)
+    {
+        $this->variations = $variations;
+
+        return $this;
+    }
+
+    public function setPublic($public)
+    {
+        $this->public = $public;
+
+        return $this;
+    }
+
+    public function setName($name)
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
 }
