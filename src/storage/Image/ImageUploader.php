@@ -3,9 +3,9 @@
 namespace Gurinder\Storage\Storage\Image;
 
 
+use Intervention\Image\Facades\Image;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Http\UploadedFile;
-use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Storage;
 use Gurinder\Storage\Storage\UploadUtils;
 
@@ -135,7 +135,7 @@ class ImageUploader
      */
     public function setInterventionImage()
     {
-        $this->interventionImage = Image::make($this->image);;
+        $this->interventionImage = Image::make($this->image);
 
         $orientation = $this->interventionImage->exif('Orientation');
 
