@@ -5,7 +5,6 @@ namespace Gurinder\Storage\Storage;
 
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\Storage;
-use Spatie\TemporaryDirectory\TemporaryDirectory;
 
 class MakeInstanceOfUploadedFileFromBase64
 {
@@ -66,8 +65,6 @@ class MakeInstanceOfUploadedFileFromBase64
         $this->string = $string;
 
         $this->disk = Storage::disk('local');
-
-        $this->tempDir = (new TemporaryDirectory);
 
         $imageParts = explode(";base64,", $string);
 
