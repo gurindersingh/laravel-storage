@@ -61,11 +61,11 @@ class Storage implements StorageContract
     /**
      * @param       $disk
      * @param array $paths
-     * @return mixed|void
+     * @return boolean
      */
     public function removeImages($disk, $paths = [], $removeFromLocalPublic = false)
     {
-        (new RemoveImage($disk, $paths, $removeFromLocalPublic))->remove();
+        return (new RemoveImage($disk, $paths, $removeFromLocalPublic))->remove();
     }
 
     /**
