@@ -7,6 +7,7 @@ use Gurinder\Storage\Storage\Storage;
 use Google\Cloud\Storage\StorageClient;
 use Illuminate\Support\ServiceProvider;
 use Gurinder\Storage\Contracts\StorageContract;
+use Gurinder\Storage\Facades\Storage as FacadesStorage;
 use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
 
 class StorageServiceProvider extends ServiceProvider
@@ -15,10 +16,10 @@ class StorageServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__ . '/config/gstorage.php' => config_path('gstorage.php')
+            __DIR__ . '/Config/gstorage.php' => config_path('gstorage.php')
         ], 'gstorage::config');
 
-        $this->loadRoutesFrom(__DIR__ . '/routes/web.php');
+        $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
 
         $factory = $this->app->make('filesystem');
         /* @var FilesystemManager $factory */
@@ -39,7 +40,7 @@ class StorageServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/config/gstorage.php', 'gstorage');
+        $this->mergeConfigFrom(__DIR__ . '/Config/gstorage.php', 'gstorage');
 
         // $this->app->register(\Superbalist\LaravelGoogleCloudStorage\GoogleCloudStorageServiceProvider::class);
 
@@ -47,7 +48,7 @@ class StorageServiceProvider extends ServiceProvider
             return new GoogleStorage();
         });
 
-        $this->app->alias(Storage::Class, 'Gurinder\Storage\Facades\Storage');
+        $this->app->alias(Storage::Class, FacadesStorage::class);
 
 
     }
